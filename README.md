@@ -1,7 +1,6 @@
 # DbConnect
 Sync data between 2 db &amp; gen some code :)
 
-This project using:
 # Client
 - Bootstrap 3/jQuery
 - Bootbox alert
