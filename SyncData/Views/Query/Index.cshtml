@@ -1,0 +1,170 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="form-horizontal">
+    <div class="form-group">
+        <div class="col-md-2">
+            Database:
+        </div>
+        <div class="col-md-4">
+            <select class="form-control" id="slDbActive">
+                @*<option value="1">Database source</option>
+                    <option value="2">Database destination</option>*@
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12">
+            <textarea id="txtQuery" class="form-control" rows="12"></textarea>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12 text-center">
+            <button id="btnExecute" class="btn btn-primary"><span class="fa fa-flash"></span> Execute</button>
+            <button id="btnClear" class="btn btn-danger"><span class="fa fa-times"></span> Clear</button>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12 x-scroll" id="divData">
+            <table id="tblData" class="table table-responsive table-hover table-bordered table-striped"></table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url: '@Url.Action("LoadDb", "Query")',
+            success: function (res) {
+                //console.log(JSON.parse(res));
+                var dbActive = getUrlParameter('dbActive');
+                var r = JSON.parse(res);
+                var option = '';
+                $.each(r, function (i, v) {
+                    if (v["TYPE"] === "SOURCE") {
+                        if (dbActive === "1") {
+                                option += '<option value="1" selected>' + v["SERVER"] + '/' + v["DATABASE"] + '</option>';
+                        } else {
+                            option += '<option value="1">' + v["SERVER"] + '/' + v["DATABASE"] + '</option>';
+                        }
+                    } else {
+                        if (dbActive === "2") {
+                            option += '<option value="2" selected>' + v["SERVER"] + '/' + v["DATABASE"] + '</option>';
+                        } else {
+                            option += '<option value="2">' + v["SERVER"] + '/' + v["DATABASE"] + '</option>';
+                        }
+                    }
+                });
+
+                $("#slDbActive").append(option);
+                var p = getUrlParameter('cName');
+                var db = getUrlParameter('db');
+                if (p != undefined) {
+                    var q = 'SELECT ' + p + " FROM " + db;
+                    $("#txtQuery").val(q);
+                }
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    });
+    $('#btnExecute').click(function () {
+        var query = $("#txtQuery").val();
+        var dbActive = $("#slDbActive").val();
+        $.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url: '@Url.Action("Execute", "Query")',
+            data: { 'query': query, 'dbActive': dbActive},
+            success: function (res) {
+                var r = JSON.parse(res);
+                if (r.length === 0 || r === undefined) {
+                    waitingDialog.hide();
+                    bootbox.alert(res);
+                    return false;
+                }
+
+                //var oName = Object.keys(r[0]);
+                //var objCol = [];
+                //$.each(oName, function (x, y) {
+                //    var _objName = {};
+                //    _objName.data = y;
+                //    objCol.push(_objName);
+                //})
+                //var jsonStr = JSON.stringify(objCol)
+                //console.log(jsonStr);
+                //console.log(JSON.parse(jsonStr));
+
+                //$("#tblData").DataTable({
+                //    data: r,
+                //    columns: objCol,
+
+                //});
+                console.log(r);
+                var table = '<table id="tblData" class="table table-responsive table-hover table-bordered table-striped">';
+                var header = '';
+                var body = '<tbody>';
+                $.each(r, function (i, v) {
+                    if (i === 1) {
+                        var _oName = Object.keys(v);
+                        header = '<thead><tr>';
+                        $.each(_oName, function (x , y) {
+                            header += '<th>' + y + '</th>';
+                        })
+                        header += '</tr></thead>';
+                    }
+                    body += '<tr>';
+                    $.each(v, function (x, y) {
+                        var _val = '';
+                        if ($.type(y) == $.type('')) {
+                            if (y.includes('/Date(')) {
+                                _val = new Date(parseInt(y.replace('/Date(', '')));
+                                _val = _val.toLocaleString();
+                            } else {
+                                _val = y;
+                            }
+                        } else if ($.type(y) == $.type(null)) {
+                            _val = "";
+                        } else if ($.type(y) == $.type(1)) {
+                            _val = y;
+                        } else if ($.type(y) == $.type([])) {
+                            if (y != '') {
+                                _val = '<img src="data:image/png;base64,' + byteToBase64(y) + '" />';
+                            } else {
+                                _val = '';
+                            }
+                        }
+                        else {
+                            _val = "Can't detect type of value!";
+                        }
+                        body += '<td>' + _val + '</td>';
+                    });
+                    body += '</tr>';
+                });
+                body += '</tbody>';
+
+                table += header;
+                table += body;
+                table += '</table>';
+                $("#divData").html(table);
+                $("#tblData").DataTable();
+                waitingDialog.hide();
+
+            },
+            error: function (errorText) {
+                waitingDialog.hide();
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    });
+
+    $("#btnClear").click(function () {
+        window.location.href = '@Url.Action("Index","Query")';
+    });
+</script>

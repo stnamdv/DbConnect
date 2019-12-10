@@ -1,0 +1,1231 @@
+﻿@{
+    ViewBag.Title = "Main";
+}
+<link rel="stylesheet" href="~/Content/select.dataTables.min.css" />
+<script type="text/javascript" src="~/Scripts/dataTables.select.min.js"></script>
+<style>
+    .table tr {
+        cursor: pointer;
+    }
+
+    td.ui-draggable-dragging {
+        border: 1px solid #ddd;
+        background-color: #fefefe;
+        padding: 5px;
+    }
+</style>
+<div class="row">
+    <div class="col-lg-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-md-6 text-left">
+                        Source database: <span id="spdbName"></span>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <button id="btnLogout" style="display: none;" class="btn btn-sm btn-danger"><span class="fa fa-times"></span> Logout</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body x-scroll" id="divDb">
+                <div id="SrcDB" class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-2">
+                            Datasource(<span class="text-danger">*</span>):
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="tbServer" name="SERVER" class="form-control" />
+                        </div>
+                        <div class="col-md-2">
+                            Database(<span class="text-danger">*</span>):
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="tbDatabase" name="DATABASE" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-2">
+                            UserID(<span class="text-danger">*</span>):
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="tbUser" name="USERID" class="form-control" />
+                        </div>
+                        <div class="col-md-2">
+                            Password(<span class="text-danger">*</span>):
+                        </div>
+                        <div class="col-md-4">
+                            <input type="password" id="tbPassword" name="PASSWORD" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-12 text-right">
+                            <input type="checkbox" checked="checked" id="cbRem" />
+                            <label for="cbRem">Remember</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-12 text-right">
+                            <button class="btn btn-info" id="btnTest"><span class="fa fa-cog"></span> Test connection</button>
+                            <button class="btn btn-primary" id="btnConnect"><span class="fa fa-lock"></span> Connect</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-md-6 text-left">
+                        Destination database: <span id="spdbNameDes"></span>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <button id="btnLogoutDes" style="display: none;" class="btn btn-sm btn-danger"><span class="fa fa-times"></span> Logout</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body x-scroll" id="divDbDes">
+                <div id="DesDB" class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-2">
+                            Datasource(<span class="text-danger">*</span>):
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="tbServerDes" class="form-control" />
+                        </div>
+                        <div class="col-md-2">
+                            Database(<span class="text-danger">*</span>):
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="tbDatabaseDes" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-2">
+                            UserID(<span class="text-danger">*</span>):
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="tbUserDes" class="form-control" />
+                        </div>
+                        <div class="col-md-2">
+                            Password(<span class="text-danger">*</span>):
+                        </div>
+                        <div class="col-md-4">
+                            <input type="password" id="tbPasswordDes" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-12 text-right">
+                            <input type="checkbox" checked="checked" id="cbRemDes" />
+                            <label for="cbRemDes">Remember</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-12 text-right">
+                            <button class="btn btn-info" id="btnTestDes"><span class="fa fa-cog"></span> Test connection</button>
+                            <button class="btn btn-primary" id="btnConnectDes"><span class="fa fa-lock"></span> Connect</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModal-label">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModal-label">Table: <span id="sptblName"></span></h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12" id="divData">
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnParam" class="btn btn-primary">GEN DB PARAM</button>
+                <button type="button" id="btnModel" class="btn btn-primary">GEN MODEL</button>
+                <button type="button" id="btnSelect" class="btn btn-primary">SELECT</button>
+                <button type="button" id="btnCountTotal" class="btn btn-primary">SELECT COUNT TOTAL</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="syncModal" tabindex="-1" role="dialog" aria-labelledby="syncModal-label">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="syncModal-label">Sync table: <span id="sptblNameSync"></span></h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12" id="divDataSync">
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modelModal" tabindex="-1" role="dialog" aria-labelledby="modelModal-label">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="modelModal-label">Gen: <span id="sptblNameModel"></span></h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12" id="divDataModel">
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="panel panel-warning" id="divSyncData">
+    <div class="panel-heading">
+        Sync data
+    </div>
+    <div class="panel-body">
+        <div class="col-md-12">
+            <div class="col-md-2">
+                Where condition:
+            </div>
+            <div class="col-md-4">
+                <input type="text" id="tbWhere" placeholder="ex: ROWNUM <= 100" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-sm btn-warning" id="btnSync"><span class="fa fa-refresh"></span> Sync</button>
+            </div>
+        </div>
+        <hr />
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    From db: <span id="spdbNameSync"></span> / <span id="sptblNameSrcSync"></span>
+                </div>
+                <div class="panel-body x-scroll" id="divDropSrc">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    To db: <span id="spdbNameSyncDes"></span> / <span id="sptblNameDesSync"></span>
+                </div>
+                <div class="panel-body x-scroll" id="divDropDes">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var dbActive = 1;//1 source, 2//des
+    var tblColumn;
+    var tblColumnSync;
+    $(document).ready(function () {
+        $("#spdbName").text("");
+        $("#spdbNameDes").text("");
+        $("#spdbNameSync").text("");
+        $("#spdbNameSyncDes").text("");
+        var _objSrc = JSON.parse(ReadCookie("SourceDbConnect"));
+        var _objDes = JSON.parse(ReadCookie("DesDbConnect"));
+        if (_objSrc != undefined) {
+            $("#tbServer").val(_objSrc.SERVER);
+            $("#tbDatabase").val(_objSrc.DATABASE);
+            $("#tbUser").val(_objSrc.USERID);
+            $("#tbPassword").val(_objSrc.PASSWORD);
+        }
+
+        if (_objDes != undefined) {
+            $("#tbServerDes").val(_objSrc.SERVER);
+            $("#tbDatabaseDes").val(_objDes.DATABASE);
+            $("#tbUserDes").val(_objDes.USERID);
+            $("#tbPasswordDes").val(_objDes.PASSWORD);
+        }
+
+        $.ajax({
+            type: 'POST',
+            dataType: 'text',
+            url: '@Url.Action("CheckSession", "Home")',
+            data: {'type': '1'},//source db
+            success: function (res) {
+                //console.log(res);
+                if (JSON.parse(res) === "0") {
+                    LoadDb();
+                    $("#spdbName").text(_objSrc.SERVER + '/' + _objSrc.DATABASE);
+                    $("#spdbNameSync").text(_objSrc.SERVER + '/' + _objSrc.DATABASE);
+                }
+                ProcessPanel(JSON.parse(res));
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+
+        $.ajax({
+            type: 'POST',
+            dataType: 'text',
+            url: '@Url.Action("CheckSession", "Home")',
+            data: {'type': '2'},//des db
+            success: function (res) {
+                //console.log(res);
+                if (JSON.parse(res) === "0") {
+                    LoadDbDes();
+                    $("#spdbNameDes").text(_objDes.SERVER + '/' + _objDes.DATABASE);
+                    $("#spdbNameSyncDes").text(_objDes.SERVER + '/' + _objDes.DATABASE);``
+                }
+                ProcessPanelDes(JSON.parse(res));
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    });
+
+    $("input[type=text], input[type=password]").focusin(function () {
+        $(this).removeClass('has-error');
+    });
+
+    $("#btnTest").click(function () {
+        var _obj = {}
+        var _s = $("#tbServer").val();
+        var _d = $("#tbDatabase").val();
+        var _u = $("#tbUser").val();
+        var _p = $("#tbPassword").val();
+
+        _obj.SERVER = _s;
+        _obj.DATABASE = _d;
+        _obj.USERID = _u;
+        _obj.PASSWORD = _p;
+
+        var flag = true;
+        $("#SrcDB input[type=text], #SrcDB input[type=password]").each(function () {
+            if ($(this).val() === '') {
+                $(this).addClass('has-error');
+
+                flag = false;
+            }
+        });
+        if (flag === false) {
+            return false;
+        }
+
+        waitingDialog.show("Trying to connect!");
+        var jsonData = JSON.stringify(_obj);
+
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            url: '@Url.Action("TestConnect", "Home")',
+            data: jsonData,
+            success: function (res) {
+                //console.log(res);
+                waitingDialog.hide();
+                bootbox.alert(res);
+            },
+            error: function (errorText) {
+                waitingDialog.hide();
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    });
+
+    $("#btnConnect").click(function () {
+        var _obj = {}
+        var _s = $("#tbServer").val();
+        var _d = $("#tbDatabase").val();
+        var _u = $("#tbUser").val();
+        var _p = $("#tbPassword").val();
+
+        _obj.SERVER = _s;
+        _obj.DATABASE = _d;
+        _obj.USERID = _u;
+        _obj.PASSWORD = _p;
+        _obj.TYPE = 'SOURCE';
+
+        var flag = true;
+        $("#SrcDB input[type=text], #SrcDB input[type=password]").each(function () {
+            if ($(this).val() === '') {
+                $(this).addClass('has-error');
+
+                flag = false;
+            }
+        });
+        if (flag === false) {
+            return false;
+        }
+
+        waitingDialog.show("Trying to connect!");
+        var jsonData = JSON.stringify(_obj);
+
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            url: '@Url.Action("Connect", "Home")',
+            data: jsonData,
+            success: function (res) {
+                //console.log(res);
+                waitingDialog.hide();
+                if (res === "1") {
+                    $("#spdbName").text(_obj.SERVER + '/' + _obj.DATABASE);
+                    $("#spdbNameSync").text(_obj.SERVER + '/' + _obj.DATABASE);
+
+                    CreateCookie("SourceDbConnect", jsonData, 5);
+                    ProcessPanel('0');
+                    LoadDb();
+                } else {
+                    bootbox.alert(res);
+                }
+            },
+            error: function (errorText) {
+                waitingDialog.hide();
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    });
+
+    $("#btnLogout").click(function () {
+        $.ajax({
+            type: 'POST',
+            dataType: 'text',
+            url: '@Url.Action("LogOut", "Home")',
+            data: {'type': '1'},//source db
+            success: function (res) {
+                //console.log(res);
+                ProcessPanel(JSON.parse(res));
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    });
+
+    $("#btnTestDes").click(function () {
+        var _obj = {}
+        var _s = $("#tbServerDes").val();
+        var _d = $("#tbDatabaseDes").val();
+        var _u = $("#tbUserDes").val();
+        var _p = $("#tbPasswordDes").val();
+
+        _obj.SERVER = _s;
+        _obj.DATABASE = _d;
+        _obj.USERID = _u;
+        _obj.PASSWORD = _p;
+
+        var flag = true;
+        $("#DesDB input[type=text], #DesDB input[type=password]").each(function () {
+            if ($(this).val() === '') {
+                $(this).addClass('has-error');
+
+                flag = false;
+            }
+        });
+        if (flag === false) {
+            return false;
+        }
+
+        waitingDialog.show("Trying to connect!");
+        var jsonData = JSON.stringify(_obj);
+
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            url: '@Url.Action("TestConnect", "Home")',
+            data: jsonData,
+            success: function (res) {
+                //console.log(res);
+                waitingDialog.hide();
+                bootbox.alert(res);
+            },
+            error: function (errorText) {
+                waitingDialog.hide();
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    });
+
+    $("#btnConnectDes").click(function () {
+        var _obj = {}
+        var _s = $("#tbServerDes").val();
+        var _d = $("#tbDatabaseDes").val();
+        var _u = $("#tbUserDes").val();
+        var _p = $("#tbPasswordDes").val();
+
+        _obj.SERVER = _s;
+        _obj.DATABASE = _d;
+        _obj.USERID = _u;
+        _obj.PASSWORD = _p;
+        _obj.TYPE = 'DESTINATION';
+
+        var flag = true;
+        $("#DesDB input[type=text], #DesDB input[type=password]").each(function () {
+            if ($(this).val() === '') {
+                $(this).addClass('has-error');
+
+                flag = false;
+            }
+        });
+        if (flag === false) {
+            return false;
+        }
+
+        waitingDialog.show("Trying to connect!");
+        var jsonData = JSON.stringify(_obj);
+
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            url: '@Url.Action("Connect", "Home")',
+            data: jsonData,
+            success: function (res) {
+                //console.log(res);
+                waitingDialog.hide();
+                if (res === "1") {
+                    $("#spdbNameDes").text(_obj.SERVER + '/' + _obj.DATABASE);
+                    $("#spdbNameSyncDes").text(_obj.SERVER + '/' + _obj.DATABASE);
+                    CreateCookie("DesDbConnect", jsonData, 5);
+                    ProcessPanelDes('0');
+                    LoadDbDes();
+                } else {
+                    bootbox.alert(res);
+                }
+            },
+            error: function (errorText) {
+                waitingDialog.hide();
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    });
+
+    $("#btnLogoutDes").click(function () {
+        $.ajax({
+            type: 'POST',
+            dataType: 'text',
+            url: '@Url.Action("LogOut", "Home")',
+            data: {'type': '2'},//des db
+            success: function (res) {
+                //console.log(res);
+                ProcessPanelDes(JSON.parse(res));
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    });
+
+    function ProcessPanel(t) {
+        $("#tblTable").remove();
+        if (t === '0') {
+            $("#divSyncData").show();
+            $("#SrcDB").hide();
+            $("#btnLogout").show();
+        } else {
+            $("#divSyncData").hide();
+            $("#SrcDB").show();
+            $("#btnLogout").hide();
+            $("#spdbName").text("");
+            $("#spdbNameSync").text("");
+            $("#divDb #tblTable_wrapper").remove();
+        }
+    }
+
+    function ProcessPanelDes(t) {
+        $("#tblTableDes").remove();
+        if (t === '0') {
+            $("#divSyncData").show();
+            $("#DesDB").hide();
+            $("#btnLogoutDes").show();
+        } else {
+            $("#divSyncData").hide();
+            $("#DesDB").show();
+            $("#btnLogoutDes").hide();
+            $("#spdbNameDes").text("");
+            $("#spdbNameSyncDes").text("");
+            $("#divDbDes #tblTableDes_wrapper").remove();
+        }
+    }
+</script>
+<script type="text/javascript">
+    function LoadDb() {
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            url: '@Url.Action("LoadDb", "Home")',
+            success: function (res) {
+                var html = '<table id="tblTable" class="table table-responsive table-striped table-hover table-bordered"><thead>';
+                html += '<tr><th></th><th>No.</th><th>OBJECT_NAME</th><th>OBJECT_TYPE</th><th>CREATED_DATE</th><th>TEMPORARY</th>';
+                html += '<tbody>'
+
+                var no = 1;
+                $.each(JSON.parse(res), function (i, v) {
+                    html += '<tr>';
+                    html += '<td><a href="#" onclick="fn_Detail(\'' + v["OBJECT_NAME"] + '\')">DETAIL</a></td>';
+                    html += '<td>' + no + '</td>';
+                    html += '<td>' + v["OBJECT_NAME"] + '</td>';
+                    html += '<td>' + v["OBJECT_TYPE"] + '</td>';
+                    html += '<td>' + v["CREATED_DATE"] + '</td>';
+                    html += '<td>' + v["TEMPORARY"] + '</td>';
+                    html += '</tr>';
+
+                    no++;
+                });
+                html += '</tbody></table>';
+
+                $("#divDb").append(html);
+                $("#tblTable").DataTable({
+                    select: {
+                        style: 'os'
+                    },
+                    order: [
+                        [1, 'asc']
+                    ]
+                });
+
+                $("#divDb tr td:nth-child(3)").draggable({
+                    appendTo: "body",
+                    helper: "clone",
+                    start: function (event, ui) {
+                        $(ui.item).addClass("active-draggable");
+                    }
+                });
+
+                $("#divDropSrc").droppable({
+                    accept: "#divDb tr td:nth-child(3)",
+                    drop: function (event, ui) {
+                        var inventor = ui.draggable.text();
+                        //console.log(inventor);
+                        $("#sptblNameSrcSync").text(inventor);
+                        $.ajax({
+                            type: 'POST',
+                            dataType: 'json',
+                            url: '@Url.Action("LoadTableDetail", "Home")',
+                            data: { 'tableName': inventor},
+                            success: function (res) {
+                                var r = JSON.parse(res);
+                                var html = '<table id="tblColumnSrcSync" class="table table-responsive table-striped table-hover table-bordered"><thead>';
+                                html += '<tr><th></th><th>No.</th><th>COLUMN_NAME</th><th>DATA_TYPE</th><th>DATA_LENGTH</th><th>NULLABLE</th>';
+                                html += '<tbody>'
+
+                                var no = 1;
+                                $.each(r, function (i, v) {
+                                    html += '<tr>';
+                                    html += '<td></td>';
+                                    html += '<td>' + no + '</td>';
+                                    html += '<td>' + v["COLUMN_NAME"] + '</td>';
+                                    html += '<td>' + v["DATA_TYPE"] + '</td>';
+                                    html += '<td>' + v["DATA_LENGTH"] + '</td>';
+                                    html += '<td>' + v["NULLABLE"] + '</td>';
+                                    html += '</tr>';
+
+                                    no++;
+                                });
+
+                                html += '</tbody></table>';
+
+                                $("#divDropSrc").html(html);
+                                tblColumn = $("#tblColumnSrcSync").DataTable({
+                                    columnDefs: [
+                                        {
+                                            orderable: false,
+                                            className: 'select-checkbox',
+                                            targets: 0,
+                                            checkboxes: {
+                                                selectRow: true
+                                            }
+                                        }
+                                    ],
+                                    select: {
+                                        style: 'multi'
+                                    },
+                                    order: [
+                                        [1, 'asc']
+                                    ]
+                                });
+
+                                tblColumn.on("click", "th.select-checkbox", function () {
+                                    if ($("#tblColumnSrcSync").find("th.select-checkbox").hasClass("selected")) {
+                                        tblColumn.rows().deselect();
+                                        $("#tblColumnSrcSync").find("th.select-checkbox").removeClass("selected");
+                                    } else {
+                                        tblColumn.rows().select();
+                                        $("#tblColumnSrcSync").find("th.select-checkbox").addClass("selected");
+                                    }
+                                }).on("select deselect", function () {
+                                    if (tblColumn.rows({
+                                        selected: true
+                                    }).count() !== tblColumn.rows().count()) {
+                                        $("#tblColumnSrcSync").find("th.select-checkbox").removeClass("selected");
+                                    } else {
+                                        $("#tblColumnSrcSync").find("th.select-checkbox").addClass("selected");
+                                    }
+                                });
+                            },
+                            error: function (error) {
+                                boobox.alert(error.errorText);
+                            }
+                        });
+                    }
+                });
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    }
+
+    function fn_Detail(tName) {
+        dbActive = 1;
+        $.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url: '@Url.Action("LoadTableDetail", "Home")',
+            data: { 'tableName': tName},
+            success: function (res) {
+                //console.log(JSON.parse(res));
+                var r = JSON.parse(res);
+                var html = '<table id="tblColumn" class="table table-responsive table-striped table-hover table-bordered"><thead>';
+                html += '<tr><th></th><th>No.</th><th>COLUMN_NAME</th><th>DATA_TYPE</th><th>DATA_LENGTH</th><th>NULLABLE</th>';
+                html += '<tbody>'
+
+                var no = 1;
+                $.each(r, function (i, v) {
+                    $("#sptblName").text(v["TABLE_NAME"]);
+                    html += '<tr>';
+                    html += '<td></td>';
+                    html += '<td>' + no + '</td>';
+                    html += '<td>' + v["COLUMN_NAME"] + '</td>';
+                    html += '<td>' + v["DATA_TYPE"] + '</td>';
+                    html += '<td>' + v["DATA_LENGTH"] + '</td>';
+                    html += '<td>' + v["NULLABLE"] + '</td>';
+                    html += '</tr>';
+
+                    no++;
+                });
+
+                html += '</tbody></table>';
+
+                $("#divData").html(html);
+                tblColumn = $("#tblColumn").DataTable({
+                    columnDefs: [
+                        {
+                            orderable: false,
+                            className: 'select-checkbox',
+                            targets: 0,
+                            checkboxes: {
+                                selectRow: true
+                            }
+                        }
+                    ],
+                    select: {
+                        style: 'multi'
+                    },
+                    order: [
+                        [1, 'asc']
+                    ]
+                });
+
+                tblColumn.on("click", "th.select-checkbox", function () {
+                    if ($("th.select-checkbox").hasClass("selected")) {
+                        tblColumn.rows().deselect();
+                        $("th.select-checkbox").removeClass("selected");
+                    } else {
+                        tblColumn.rows().select();
+                        $("th.select-checkbox").addClass("selected");
+                    }
+                }).on("select deselect", function () {
+                    if (tblColumn.rows({
+                        selected: true
+                    }).count() !== tblColumn.rows().count()) {
+                        $("th.select-checkbox").removeClass("selected");
+                    } else {
+                        $("th.select-checkbox").addClass("selected");
+                    }
+                });
+                $("#myModal").modal("toggle");
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    function LoadDbDes() {
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            url: '@Url.Action("LoadDbDes", "Home")',
+            success: function (res) {
+                var html = '<table id="tblTableDes" class="table table-responsive table-striped table-hover table-bordered"><thead>';
+                html += '<tr><th></th><th>No.</th><th>OBJECT_NAME</th><th>OBJECT_TYPE</th><th>CREATED_DATE</th><th>TEMPORARY</th>';
+                html += '<tbody>'
+
+                var no = 1;
+                $.each(JSON.parse(res), function (i, v) {
+                    html += '<tr>';
+                    html += '<td><a href="#" onclick="fn_DetailDes(\'' + v["OBJECT_NAME"] + '\')">DETAIL</a>';
+                    //html += '<a href="#" onclick="fn_SyncDes(\'' + v["OBJECT_NAME"] + '\')">SYNC</a></td>';
+                    html += '<td>' + no + '</td>';
+                    html += '<td>' + v["OBJECT_NAME"] + '</td>';
+                    html += '<td>' + v["OBJECT_TYPE"] + '</td>';
+                    html += '<td>' + v["CREATED_DATE"] + '</td>';
+                    html += '<td>' + v["TEMPORARY"] + '</td>';
+                    html += '</tr>';
+
+                    no++;
+                });
+                html += '</tbody></table>';
+                $("#divDbDes").append(html);
+                $("#tblTableDes").DataTable({
+                    select: {
+                        style: 'os'
+                    },
+                    order: [
+                        [1, 'asc']
+                    ]
+                });
+
+                $("#divDbDes tr td:nth-child(3)").draggable({
+                    appendTo: "body",
+                    helper: "clone",
+                    start: function (event, ui) {
+                        $(ui.item).addClass("active-draggable");
+                    }
+                });
+
+                $("#divDropDes").droppable({
+                    accept: "#divDbDes tr td:nth-child(3)",
+                    drop: function (event, ui) {
+                        var inventor = ui.draggable.text();
+                        //console.log(inventor);
+                        $("#sptblNameDesSync").text(inventor);
+                        $.ajax({
+                            type: 'POST',
+                            dataType: 'json',
+                            url: '@Url.Action("LoadTableDetailDes", "Home")',
+                            data: { 'tableName': inventor},
+                            success: function (res) {
+                                var r = JSON.parse(res);
+                                var html = "";
+                                html += '<div class="col-md-12"><i class="text-danger">Note: Select key to check data.</i></div>';
+                                html += '<table id="tblColumnDesSync" class="table table-responsive table-striped table-hover table-bordered"><thead>';
+                                html += '<tr><th></th><th>No.</th><th>COLUMN_NAME</th><th>DATA_TYPE</th><th>DATA_LENGTH</th><th>NULLABLE</th>';
+                                html += '<tbody>'
+
+                                var no = 1;
+                                $.each(r, function (i, v) {
+                                    html += '<tr>';
+                                    html += '<td></td>';
+                                    html += '<td>' + no + '</td>';
+                                    html += '<td>' + v["COLUMN_NAME"] + '</td>';
+                                    html += '<td>' + v["DATA_TYPE"] + '</td>';
+                                    html += '<td>' + v["DATA_LENGTH"] + '</td>';
+                                    html += '<td>' + v["NULLABLE"] + '</td>';
+                                    html += '</tr>';
+
+                                    no++;
+                                });
+
+                                html += '</tbody></table>';
+
+                                $("#divDropDes").html(html);
+                                //$("#tblColumnDesSync").DataTable();
+                                var tblColumn2 = $("#tblColumnDesSync").DataTable({
+                                    columnDefs: [
+                                        {
+                                            orderable: false,
+                                            className: 'select-checkbox',
+                                            targets: 0,
+                                            checkboxes: {
+                                                selectRow: true
+                                            }
+                                        }
+                                    ],
+                                    select: {
+                                        style: 'multi'
+                                    },
+                                    order: [
+                                        [1, 'asc']
+                                    ]
+                                });
+
+                                tblColumn2.on("click", "th.select-checkbox", function () {
+                                    if ($("#tblColumnDesSync").find("th.select-checkbox").hasClass("selected")) {
+                                        tblColumn2.rows().deselect();
+                                        $("#tblColumnDesSync").find("th.select-checkbox").removeClass("selected");
+                                    } else {
+                                        tblColumn2.rows().select();
+                                        $("#tblColumnDesSync").find("th.select-checkbox").addClass("selected");
+                                    }
+                                }).on("select deselect", function () {
+                                    if (tblColumn2.rows({
+                                        selected: true
+                                    }).count() !== tblColumn2.rows().count()) {
+                                        $("#tblColumnDesSync").find("th.select-checkbox").removeClass("selected");
+                                    } else {
+                                        $("#tblColumnDesSync").find("th.select-checkbox").addClass("selected");
+                                    }
+                                });
+
+                            },
+                            error: function (error) {
+                                boobox.alert(error.errorText);
+                            }
+                        });
+                    }
+                });
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    }
+
+    function fn_DetailDes(tName) {
+        dbActive = 2;
+        $.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url: '@Url.Action("LoadTableDetailDes", "Home")',
+            data: { 'tableName': tName},
+            success: function (res) {
+                //console.log(JSON.parse(res));
+                var r = JSON.parse(res);
+                var html = '<table id="tblColumn" class="table table-responsive table-striped table-hover table-bordered"><thead>';
+                html += '<tr><th></th><th>No.</th><th>COLUMN_NAME</th><th>DATA_TYPE</th><th>DATA_LENGTH</th><th>NULLABLE</th>';
+                html += '<tbody>'
+
+                var no = 1;
+                $.each(r, function (i, v) {
+                    $("#sptblName").text(v["TABLE_NAME"]);
+                    html += '<tr>';
+                    html += '<td></td>';
+                    html += '<td>' + no + '</td>';
+                    html += '<td>' + v["COLUMN_NAME"] + '</td>';
+                    html += '<td>' + v["DATA_TYPE"] + '</td>';
+                    html += '<td>' + v["DATA_LENGTH"] + '</td>';
+                    html += '<td>' + v["NULLABLE"] + '</td>';
+                    html += '</tr>';
+
+                    no++;
+                });
+
+                html += '</tbody></table>';
+
+                $("#divData").html(html);
+                tblColumn = $("#tblColumn").DataTable({
+                    columnDefs: [
+                        {
+                            orderable: false,
+                            className: 'select-checkbox',
+                            targets: 0,
+                            checkboxes: {
+                                selectRow: true
+                            }
+                        }
+                    ],
+                    select: {
+                        style: 'multi'
+                    },
+                    order: [
+                        [1, 'asc']
+                    ]
+                });
+
+                tblColumn.on("click", "th.select-checkbox", function () {
+                    if ($("th.select-checkbox").hasClass("selected")) {
+                        tblColumn.rows().deselect();
+                        $("th.select-checkbox").removeClass("selected");
+                    } else {
+                        tblColumn.rows().select();
+                        $("th.select-checkbox").addClass("selected");
+                    }
+                }).on("select deselect", function () {
+                    if (tblColumn.rows({
+                        selected: true
+                    }).count() !== tblColumn.rows().count()) {
+                        $("th.select-checkbox").removeClass("selected");
+                    } else {
+                        $("th.select-checkbox").addClass("selected");
+                    }
+                });
+
+                $("#myModal").modal("toggle");
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    $("#btnCountTotal").click(function () {
+        waitingDialog.show("Processing data...");
+        var tName = $("#sptblName").text();
+        $.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url: '@Url.Action("CountTotal", "Home")',
+            data: {
+                'tableName': tName,
+                'dbActive': dbActive
+            },
+            success: function (res) {
+                //console.log(JSON.parse(res));
+                waitingDialog.hide();
+                bootbox.alert(res);
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    });
+
+    $("#btnSelect").click(function () {
+        var ids = $.map(tblColumn.rows('.selected').data(), function (item) {
+            return item[2]
+        });
+        var cName = '*';
+        var db = $("#sptblName").text();
+        if (ids.length > 0) {
+            cName = ids.join(',');
+        }
+        window.open('@Url.Action("Index", "Query")?dbActive=' + dbActive + '&cName=' + cName + '&db=' + db, '_blank');
+    });
+</script>
+
+@*Sync data*@
+<script>
+    function fn_SyncDes(tName) {
+        dbActive = 2;
+        $.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url: '@Url.Action("LoadTableDetailDes", "Home")',
+            data: { 'tableName': tName},
+            success: function (res) {
+                //console.log(JSON.parse(res));
+                var r = JSON.parse(res);
+                var html = '<table id="tblColumnSync" class="table table-responsive table-striped table-hover table-bordered"><thead>';
+                html += '<tr><th></th><th>No.</th><th>COLUMN_NAME</th><th>DATA_TYPE</th><th>DATA_LENGTH</th><th>NULLABLE</th>';
+                html += '<tbody>'
+
+                var no = 1;
+                $.each(r, function (i, v) {
+                    $("#sptblNameSync").text(v["TABLE_NAME"]);
+                    html += '<tr>';
+                    html += '<td></td>';
+                    html += '<td>' + no + '</td>';
+                    html += '<td>' + v["COLUMN_NAME"] + '</td>';
+                    html += '<td>' + v["DATA_TYPE"] + '</td>';
+                    html += '<td>' + v["DATA_LENGTH"] + '</td>';
+                    html += '<td>' + v["NULLABLE"] + '</td>';
+                    html += '</tr>';
+
+                    no++;
+                });
+
+                html += '</tbody></table>';
+
+                $("#divDataSync").html(html);
+                tblColumnSync = $("#tblColumnSync").DataTable({
+                    columnDefs: [
+                        {
+                            orderable: false,
+                            className: 'select-checkbox',
+                            targets: 0,
+                            checkboxes: {
+                                selectRow: true
+                            }
+                        }
+                    ],
+                    select: {
+                        style: 'multi'
+                    },
+                    order: [
+                        [1, 'asc']
+                    ]
+                });
+
+                tblColumnSync.on("click", "th.select-checkbox", function () {
+                    if ($("th.select-checkbox").hasClass("selected")) {
+                        tblColumnSync.rows().deselect();
+                        $("th.select-checkbox").removeClass("selected");
+                    } else {
+                        tblColumnSync.rows().select();
+                        $("th.select-checkbox").addClass("selected");
+                    }
+                }).on("select deselect", function () {
+                    if (tblColumnSync.rows({
+                        selected: true
+                    }).count() !== tblColumnSync.rows().count()) {
+                        $("th.select-checkbox").removeClass("selected");
+                    } else {
+                        $("th.select-checkbox").addClass("selected");
+                    }
+                });
+
+                $("#syncModal").modal("toggle");
+            },
+            error: function (errorText) {
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    }
+
+    $("#btnSync").click(function () {
+        var data = {};
+        data.DB_SOURCE = $("#sptblNameSrcSync").text().trim();
+        data.DB_DESTINATION = $("#sptblNameDesSync").text().trim();
+        data.WHERE = $("#tbWhere").val().trim();
+
+        if (data.DB_DESTINATION === "") {
+            bootbox.alert("Please select table destination to sync!");
+            return false;
+        }
+
+        var _obj = [];
+        $("#tblColumnSrcSync tbody tr.selected").each(function (i, v) {
+            var val = $(this).find("td").eq(2).html();
+            _obj.push(val);
+        });
+
+        var _key = [];
+        $("#tblColumnDesSync tbody tr.selected").each(function (i, v) {
+            var val = $(this).find("td").eq(2).html();
+            _key.push(val);
+        });
+
+        if (_obj.length === 0) {
+            bootbox.alert("Please select column to sync!");
+            return false;
+        }
+        if (_key.length === 0) {
+            bootbox.alert("Please select key to check data!");
+            return false;
+        }
+
+        data.SOURCE_COLUMN = _obj.join(',');
+        data.KEY = _key.join(',');
+
+        var json = JSON.stringify(data);
+        if (data.WHERE === "") {
+            bootbox.confirm({
+                message: "Where condition is empty, are you sure want to continute?",
+                callback: function (result) {
+                    if (result) {
+                        waitingDialog.show("Synchronizing data from " + data.DB_SOURCE + " to " + data.DB_DESTINATION);
+                        SyncData(json);
+                    }
+                }
+            });
+        } else {
+            waitingDialog.show("Synchronizing data from " + data.DB_SOURCE + " to " + data.DB_DESTINATION);
+            SyncData(json);
+        }
+    });
+
+    function SyncData(json) {
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            url: '@Url.Action("Sync", "Home")',
+            data: json,
+            success: function (res) {
+                //console.log(JSON.parse(res));
+                waitingDialog.hide();
+                bootbox.alert(res);
+            },
+            error: function (errorText) {
+                waitingDialog.hide();
+                bootbox.alert(errorText.statusText);
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    $('#btnModel').click(function () {
+        var col = $.map(tblColumn.rows('.selected').data(), function (item) {
+            var _colName = item[2].toUpperCase();
+            var _type = item[3].toUpperCase();
+            var _item = '';
+            if (_type.includes('DATE') || _type.includes('TIMESTAMP')) {
+                _item += 'public DateTime? ' + _colName + ' { get; set; }</br>';
+            } else if (_type.includes('LOB')) {
+                _item += 'public byte[] ' + _colName + ' { get; set; }</br>';
+            } else {
+                _item += 'public string ' + _colName + ' { get; set; }</br>';
+            }
+
+            return _item;
+        });
+
+        console.log(col);
+
+        if (col.length === 0) {
+            bootbox.alert('Please select column to gen model!');
+            return false;
+        }
+        var db = $("#sptblName").text();
+        var item = col.join(' ');
+
+        var out = '';
+        //out += 'public ' + db + '(){}</br></br>'; //contructor
+        out += item;
+
+        $("#sptblNameModel").text(db);
+        $("#divDataModel").html(out);
+        $("#modelModal").modal('toggle');
+
+    });
+
+    $('#btnParam').click(function () {
+        var db = $("#sptblName").text();
+        var col = $.map(tblColumn.rows('.selected').data(), function (item) {
+            var _colName = item[2].toUpperCase();
+            var _type = item[3].toUpperCase();
+            var _item = 'P_' + _colName + ' IN ' + db + '.' + _colName + '%TYPE</br>';
+
+            return _item;
+        });
+
+        console.log(col);
+
+        if (col.length === 0) {
+            bootbox.alert('Please select column to gen parameter!');
+            return false;
+        }
+        var item = col.toString();
+
+        $("#sptblNameModel").text(db);
+        $("#divDataModel").html(item);
+        $("#modelModal").modal('toggle');
+
+    });
+</script>
