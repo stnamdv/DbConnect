@@ -12,3 +12,6 @@ Sync data between 2 db &amp; gen some code :)
 - dotNET 4.6
 - ADO.NET
 - Oracle DataAccess Client
+
+# Log
+- Log4Net
